@@ -4,8 +4,9 @@
 #include <string>
 #include <nlohmann/json.hpp>
 
-using namespace nlohmann;
 
+std::string seedDataFile = "/home/lavonsampson/c++/BackEndProject/data/seedData.json";
+using namespace nlohmann;
 int main()
 {
     // Main page.
@@ -47,27 +48,28 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
     CROW_ROUTE(app, "/snippet")
         .methods("GET"_method)([](const crow::request &req, crow::response &res){
         json jsonData;
-    std::ifstream seedData("../../data/seedData.json");
+    std::ifstream seedData(seedDataFile);
+
     if(seedData.is_open()){
         seedData >> jsonData;
         seedData.close();
+    } else {
+        std::cerr << "Failed to open file: seedData.json" << std::endl;
     }
     
         res.set_header("Content-Type", "application/json");
-        // std::string jString = jsonData.dump(4);
         res.write(jsonData.dump(4));
         res.end(); 
         });
 
     // Get by ID
-    //  Bug Return status should be not found If ID doesn't exist.
     CROW_ROUTE(app, "/snippet/<int>")
         .methods("GET"_method)([](const crow::request &req, crow::response &res, int codeID)
                                {
-        std::fstream seedData("../../data/seedData.json");
+        std::fstream seedData(seedDataFile);
         if(!seedData.is_open()){
             std::cerr<<"Failed to open file\n";
-            res.code = 500;
+            res.code = 404;
             res.write("Failed to access data file");
             return;
         }
@@ -78,16 +80,16 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
        bool found = false;
     for (const auto& code : oneSnip) {
         if (codeID == code.at("id")) {
-        std::string oneCodeLang = code.dump(4);
+        res.set_header("Content-Type", "application/json");
         res.code = 200;
-        res.write(oneCodeLang);
+        res.write(code.dump(4));
         found = true;
         break;
         }
     }
 
     if (!found) {
-    res.code = 204;
+    res.code = 404;
     res.write("No Content Found");
     }   
             
@@ -102,7 +104,7 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
         std::string language = request["language"];
         std::string code = request["code"];
 
-        std::ifstream seedData("../../data/seedData.json");
+        std::ifstream seedData(seedDataFile);
         if (!seedData.is_open()){
             std::cerr << "Failed to open file\n";
             res.code = 500;
@@ -120,7 +122,7 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
 
         currentData.push_back(newSnippet);
 
-        std::ofstream outputFile("../../data/seedData.json");
+        std::ofstream outputFile(seedDataFile);
 
         if (outputFile.is_open()) {
             outputFile << currentData.dump(4);
