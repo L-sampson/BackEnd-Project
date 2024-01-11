@@ -3,20 +3,29 @@
 #include <fstream>
 #include <string>
 #include <nlohmann/json.hpp>
+#include <vector>
+#include <algorithm>
 
 
 std::string seedDataFile = "/home/lavonsampson/c++/BackEndProject/data/seedData.json";
 using namespace nlohmann;
-int main()
+int main(int argc, char* argv[])
 {
+    std::vector<std::string> commands(argv + 1, argv + argc);
     // Main page.
     crow::SimpleApp app;
 
     // Landing Page for Snippet with string literal for welcome message.
     CROW_ROUTE(app, "/")
-    ([]()
+    ([&commands]() ->crow::response
      {
-        std::string welcome = R"(
+        crow::response res;
+        if (std::find(commands.begin(), commands.end(), "--all") != commands.end()) {
+        res.redirect("/snippet");
+        return res;
+    } else {
+    res.set_header("Content-Type", "text/plain");
+        res.write (R"(
  __       __            __                                                      __                       ______                   __           
 /  |  _  /  |          /  |                                                    /  |                     /      \                 /  |          
 $$ | / \ $$ |  ______  $$ |  _______   ______   _____  ____    ______         _$$ |_     ______        /$$$$$$  |  ______    ____$$ |  ______  
@@ -41,25 +50,31 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
                                                                   $$ |      $$ |                                                               
                                                                   $$ |      $$ |                                                               
                                                                   $$/       $$/                                                                
-)";
-        return welcome; });
+)");
+        return res;
+    }
+     });
 
     // Get All Code Snippets
     CROW_ROUTE(app, "/snippet")
-        .methods("GET"_method)([](const crow::request &req, crow::response &res){
-        json jsonData;
-    std::ifstream seedData(seedDataFile);
+        .methods("GET"_method)([&commands](const crow::request &req, crow::response &res){
+        if (std::find(commands.begin(), commands.end(), "--all") != commands.end()) {
+            json jsonData;
+            std::ifstream seedData(seedDataFile);
 
-    if(seedData.is_open()){
-        seedData >> jsonData;
-        seedData.close();
-    } else {
-        std::cerr << "Failed to open file: seedData.json" << std::endl;
-    }
-    
-        res.set_header("Content-Type", "application/json");
-        res.write(jsonData.dump(4));
-        res.end(); 
+            if(seedData.is_open()){
+            seedData >> jsonData;
+            seedData.close();
+            } else {
+            std::cerr << "Failed to open file: seedData.json" << std::endl;
+            }
+            res.set_header("Content-Type", "application/json");
+            res.write(jsonData.dump(4));
+            res.end(); 
+        } else{
+            res.set_header("Content-Type", "application/json");
+            res.write("Welcome");
+        }
         });
 
     // Get by ID
