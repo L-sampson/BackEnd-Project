@@ -1,7 +1,0 @@
-BUILD
-WORKSPACE
-**/bazel-*
-**/bazel-out*
-MODULE.bazel
-MODULE.bazel.lock
-*.exe
