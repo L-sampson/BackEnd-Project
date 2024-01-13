@@ -1,5 +1,6 @@
 #include "server/utils/AuthenticateUsers.hpp"
 #include "server/utils/JsonParser.hpp"
+#include "server/utils/Encrypt.hpp"
 #include <algorithm>
 #include <crow.h>
 #include <fstream>
@@ -14,9 +15,9 @@
 using namespace nlohmann;
 std::string seedDataFile = "/home/lavonsampson/c++/BackEnd-Project/data/seedData.json";
 std::string userDataFile = "/home/lavonsampson/c++/BackEnd-Project/data/seedUsers.json";
+std::string keyDataFile = "/home/lavonsampson/c++/BackEnd-Project/config/keys.json";
 int main(int argc, char* argv[])
 {
-    
     std::vector<std::string> commands(argv + 1, argv + argc);
     // Main page.
     crow::SimpleApp app;
@@ -26,8 +27,11 @@ int main(int argc, char* argv[])
     ([&commands]() ->crow::response
      {
         crow::response res;
-        if (std::find(commands.begin(), commands.end(), "--all") != commands.end()) {
+        if (std::find(commands.begin(), commands.end(), "all") != commands.end()) {
         res.redirect("/snippet");
+        return res;
+    } else if(std::find(commands.begin(), commands.end(), "users") != commands.end()){
+        res.redirect("/users");
         return res;
     } else {
     res.set_header("Content-Type", "text/plain");
@@ -64,7 +68,7 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
     // Get All Code Snippets
     CROW_ROUTE(app, "/snippet")
         .methods("GET"_method)([&commands](const crow::request &req, crow::response &res){
-        if (std::find(commands.begin(), commands.end(), "--all") != commands.end()) {
+        if (std::find(commands.begin(), commands.end(), "all") != commands.end()) {
             json jsonData = ReadFile(seedDataFile);
             std::ifstream seedData(seedDataFile);
 
@@ -82,8 +86,8 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
         .methods("GET"_method)([](const crow::request &req, crow::response &res, int codeID) {
         json oneSnip = ReadFile(seedDataFile);
 
-       bool found = false;
-    for (const auto& code : oneSnip) {
+        bool found = false;
+        for (const auto& code : oneSnip) {
         if (codeID == code.at("id")) {
         res.set_header("Content-Type", "application/json");
         res.code = 200;
@@ -105,22 +109,31 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
         .methods("POST"_method)([](const crow::request &req, crow::response &res)
                                 {
         json request = request.parse(req.body);
-        int id = request["id"];
+        // int id = request["id"];
         std::string language = request["language"];
         std::string code = request["code"];
 
+        Env env = readKeys(keyDataFile);
+        setEnv(env);
+        std::string encrypted_code = encrypt(code, std::getenv("ENCRYPTION_KEY"), std::getenv("ENCRYPTION_IV"));
+
         json postData = ReadFile(seedDataFile);
+        // Find the highest existing ID
+        int maxId = 0;
+        for (const auto &snipID : postData){
+            int snippetId = snipID["id"];
+            maxId = std::max(maxId, snippetId);
+        }
 
+        int newId = maxId +1;
         json newSnippet = {
-            {"id", id},
+            {"id", newId},
             {"language", language},
-            {"code", code}
+            {"code", encrypted_code}
         };
-
         postData.push_back(newSnippet);
 
         std::ofstream outputFile(seedDataFile);
-
         if (outputFile.is_open()) {
             outputFile << postData.dump(4);
             outputFile.close();
@@ -130,14 +143,10 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
             res.code = 500;
             res.write("Failed to access data file");
         }
-
         res.end(); });
 
     // User Creation
-    #include <fstream>
-#include <nlohmann/json.hpp>
-
-CROW_ROUTE(app, "/users")
+    CROW_ROUTE(app, "/users")
     .methods("POST"_method)([](const crow::request &req, crow::response &res) {
         CROW_LOG_INFO << "Received POST request to /users";
 
@@ -146,7 +155,7 @@ CROW_ROUTE(app, "/users")
         // Parse request body
         try {
             json request = request.parse(req.body);
-            int id = request["id"];
+            // int id = request["id"];
             std::string username = request["username"];
             std::string password = request["password"];
 
@@ -160,14 +169,20 @@ CROW_ROUTE(app, "/users")
 
             
             json postUser = ReadFile(userDataFile);
+            // Find the highest existing ID
+            int maxId = 0;
+            for (const auto &loginID : postUser){
+            int userId = loginID["id"];
+            maxId = std::max(maxId, userId);
+            }
 
+            int new_userID = maxId +1;
             // Create JSON object directly (no user object)
             json userData = {
-                {"id", id},
+                {"id", new_userID},
                 {"username", username},
                 {"hashedPassword", hashedPassword}
             };
-
             postUser.push_back(userData);
 
             // Write JSON object to file
@@ -188,15 +203,24 @@ CROW_ROUTE(app, "/users")
             res.code = 400;
             res.write("Invalid request body");
         }
-
         res.end();
     });
 
-
-
-
-
     // Get All Users.
+    CROW_ROUTE(app, "/users")
+        .methods("GET"_method)([&commands](const crow::request &req, crow::response &res){
+        if (std::find(commands.begin(), commands.end(), "users") != commands.end()) {
+            json jsonData = ReadFile(userDataFile);
+            std::ifstream seedData(userDataFile);
+
+            res.set_header("Content-Type", "application/json");
+            res.write(jsonData.dump(4));
+            res.end();
+        } else{
+            res.set_header("Content-Type", "application/json");
+            res.write("Couldn't find Users");
+        }
+        });
 
     app.port(8080)
         .multithreaded()

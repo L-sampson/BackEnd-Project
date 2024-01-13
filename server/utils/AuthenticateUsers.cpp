@@ -1,9 +1,10 @@
 #include "AuthenticateUsers.hpp"
-#include <nlohmann/json.hpp>
-using namespace nlohmann;
-
-#include <openssl/sha.h>
 #include <iomanip>
+#include <openssl/sha.h>
+#include <nlohmann/json.hpp>
+
+
+using namespace nlohmann;
 
 std::string GenerateSalt() {
     const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./";

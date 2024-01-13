@@ -4,3 +4,4 @@ WORKSPACE
 MODULE.bazel
 MODULE.bazel.lock
 *.exe
+config
