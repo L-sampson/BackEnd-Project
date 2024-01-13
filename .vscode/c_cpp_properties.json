@@ -5,7 +5,8 @@
             "includePath": [
                 "${default}",
                 "${workspaceFolder/**}",
-                "${workspaceFolder}"
+                "${workspaceFolder}",
+                "/usr/include/botan-2"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

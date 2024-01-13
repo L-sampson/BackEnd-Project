@@ -1,5 +1,4 @@
 # Build file for Backend Project
-
 # Binary for Server.cpp
 cc_binary(
     name = "server",
@@ -17,5 +16,6 @@ cc_binary(
     ],  # Link with pthread library
     toolchains = ["@local_config_cc//:toolchain"],
     deps = ["//server/utils:json-parser",
-    "//server/utils:autho"]
+    "//server/utils:autho",
+    "//server/utils:encrypt"]
 )
