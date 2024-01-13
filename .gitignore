@@ -1,0 +1,6 @@
+**/bazel-*
+**/bazel-out*
+WORKSPACE
+MODULE.bazel
+MODULE.bazel.lock
+*.exe

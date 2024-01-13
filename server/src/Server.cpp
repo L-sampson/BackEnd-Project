@@ -1,17 +1,22 @@
-#include <iostream>
+#include "server/utils/AuthenticateUsers.hpp"
+#include "server/utils/JsonParser.hpp"
+#include <algorithm>
 #include <crow.h>
 #include <fstream>
-#include <string>
-#include <crow.h>
+#include <iostream>
+#include <openssl/sha.h>
+#include <openssl/rand.h>
 #include <nlohmann/json.hpp>
+#include <string>
 #include <vector>
-#include <algorithm>
 
 
-std::string seedDataFile = "/home/lavonsampson/c++/Test/data2/seedData.json";
 using namespace nlohmann;
+std::string seedDataFile = "/home/lavonsampson/c++/BackEnd-Project/data/seedData.json";
+std::string userDataFile = "/home/lavonsampson/c++/BackEnd-Project/data/seedUsers.json";
 int main(int argc, char* argv[])
 {
+    
     std::vector<std::string> commands(argv + 1, argv + argc);
     // Main page.
     crow::SimpleApp app;
@@ -60,38 +65,22 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
     CROW_ROUTE(app, "/snippet")
         .methods("GET"_method)([&commands](const crow::request &req, crow::response &res){
         if (std::find(commands.begin(), commands.end(), "--all") != commands.end()) {
-            json jsonData;
+            json jsonData = ReadFile(seedDataFile);
             std::ifstream seedData(seedDataFile);
 
-            if(seedData.is_open()){
-            seedData >> jsonData;
-            seedData.close();
-            } else {
-            std::cerr << "Failed to open file: seedData.json" << std::endl;
-            }
             res.set_header("Content-Type", "application/json");
             res.write(jsonData.dump(4));
             res.end(); 
         } else{
             res.set_header("Content-Type", "application/json");
-            res.write("Welcome");
+            res.write("Couldn't find Snippets");
         }
         });
 
     // Get by ID
     CROW_ROUTE(app, "/snippet/<int>")
-        .methods("GET"_method)([](const crow::request &req, crow::response &res, int codeID)
-                               {
-        std::fstream seedData(seedDataFile);
-        if(!seedData.is_open()){
-            std::cerr<<"Failed to open file\n";
-            res.code = 404;
-            res.write("Failed to access data file");
-            return;
-        }
-       json oneSnip;
-       seedData >> oneSnip;
-       seedData.close();
+        .methods("GET"_method)([](const crow::request &req, crow::response &res, int codeID) {
+        json oneSnip = ReadFile(seedDataFile);
 
        bool found = false;
     for (const auto& code : oneSnip) {
@@ -120,28 +109,20 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
         std::string language = request["language"];
         std::string code = request["code"];
 
-        std::ifstream seedData(seedDataFile);
-        if (!seedData.is_open()){
-            std::cerr << "Failed to open file\n";
-            res.code = 500;
-            res.write("Failed to access data file");
-            return;
-        }
-        json currentData;
-        seedData >> currentData;
-        seedData.close();
+        json postData = ReadFile(seedDataFile);
+
         json newSnippet = {
             {"id", id},
             {"language", language},
             {"code", code}
         };
 
-        currentData.push_back(newSnippet);
+        postData.push_back(newSnippet);
 
         std::ofstream outputFile(seedDataFile);
 
         if (outputFile.is_open()) {
-            outputFile << currentData.dump(4);
+            outputFile << postData.dump(4);
             outputFile.close();
             res.code = 201;
             res.write("Snippet created successfully");
@@ -151,6 +132,71 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
         }
 
         res.end(); });
+
+    // User Creation
+    #include <fstream>
+#include <nlohmann/json.hpp>
+
+CROW_ROUTE(app, "/users")
+    .methods("POST"_method)([](const crow::request &req, crow::response &res) {
+        CROW_LOG_INFO << "Received POST request to /users";
+
+        res.set_header("Content-Type", "application/json");
+
+        // Parse request body
+        try {
+            json request = request.parse(req.body);
+            int id = request["id"];
+            std::string username = request["username"];
+            std::string password = request["password"];
+
+            // Generate salt and hash password
+            std::string salt = GenerateSalt();
+            std::string hashedPassword = HashPassword(password, salt);
+
+            // Log salt and hashed password
+            CROW_LOG_INFO << "Generated salt: " << salt;
+            CROW_LOG_INFO << "Hashed password: " << hashedPassword;
+
+            
+            json postUser = ReadFile(userDataFile);
+
+            // Create JSON object directly (no user object)
+            json userData = {
+                {"id", id},
+                {"username", username},
+                {"hashedPassword", hashedPassword}
+            };
+
+            postUser.push_back(userData);
+
+            // Write JSON object to file
+            std::ofstream outputFile(userDataFile);
+            if (outputFile.is_open()) {
+                outputFile << postUser.dump(4) << std::endl;  // Add newline
+                outputFile.close();
+                CROW_LOG_INFO << "User data written to file successfully";
+                res.code = 201;
+                res.write("User created successfully");
+            } else {
+                CROW_LOG_ERROR << "Failed to open file for writing";
+                res.code = 500;
+                res.write("Failed to write user data to file");
+            }
+        } catch (const std::exception& e) {
+            CROW_LOG_ERROR << "Error parsing request body: " << e.what();
+            res.code = 400;
+            res.write("Invalid request body");
+        }
+
+        res.end();
+    });
+
+
+
+
+
+    // Get All Users.
 
     app.port(8080)
         .multithreaded()
