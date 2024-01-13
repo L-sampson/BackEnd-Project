@@ -1,24 +1,24 @@
-# Multiverse BackEnd Project.
-## TechStack:
+# Multiverse BackEnd Project
+## TechStack
 1. **C++ STL fstream** 
     - Open Seed Data Files.
 2. **Curl Library** 
     - Client-Side API/HTTP Request(GET, POST, PUT, DELETE)
 3. **Crow Library**
     - Server-Side API/HTTP
-3. **Modern C++ Json(Nlohmann)** 
+4. **Modern C++ Json(Nlohmann)**
     - Parse JSON Objects
-4. **GTest**
+5. **GTest**
     - Testing Framework
-4. **Protobuf(Potential Stack)** 
+6. **Protobuf(Potential Stack)**
     - Create Messages to Serialize & Deserialize Data
-5. **OpenSSL**
+7. **OpenSSL**
     - Encryption for password and username
-6. **Botan**
+8. **Botan**
     - Encryption
 
-### FileTree Structure:
-```
+### FileTree Structure
+``` bash
 project/
     |-- client/
     |   |-- src/
@@ -47,7 +47,7 @@ project/
     |-- Bazel/CMake BuildFile        // Build automation script
 ```
 
-## Week 2 MVP:
+## Week 2 MVP
 ### User Stories
 #### Encryption
 - As a user, I want all snippets to be encrypted before being saved into the database, so that I feel confident my code can’t be stolen if the database is compromised
@@ -57,19 +57,19 @@ project/
 - As a user, I want to make an account with my email and password, so that I can have an identity on Snippr.io
 
 ### Functional Requirements
-#### Encryption
+#### Encryption MVP
 - When a POST request is made to /snippet, the code content of the body should be encrypted before saving in the datastore
 - When a GET request is made to /snippet (or any subroute), the code content should be decrypted before returning
 
-### Authentication
+### Authentication MVP
 - When a POST request is made to /user with email and password in the body, the password should be salted and hashed before the user is saved in the data store.
 - ***Bonus***: When a GET request is made to /user, only the user whose correct credentials are provided should be returned. The response must not contain the password (or a hash of the password). This is therefore a protected endpoint and can only be accessed if email and password are provided with the request.
 
 ***
-## Week 1 MVP:
-### User Stories
+## Week 1 MVP
+### User Stories Week 1
 As a user, I can add a snippet to the data store, so that I can look it up again when I need it.
-```
+```bash
 POST/snippet/8 
 Returns
 {
@@ -81,7 +81,7 @@ Returns
   }
 ```
 As a user, I can request a snippet by its ID, so that I can see the snippet again
-```
+```bash
 GET/snippet/8 
 Returns
 {
@@ -92,7 +92,7 @@ Returns
     }
   }
 ```
-### Functional Requirements:
+### Functional Requirements Week 1
 1. Users can make POST request to /snippet to create a new snippet
 2. Users can make a GET request to /snippet to get all the snippets currently in the data store
 3. Users can make a GET request to e.g. /snippet/3 to retrieve the snippet with the ID of 3
