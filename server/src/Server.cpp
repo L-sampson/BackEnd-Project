@@ -1,6 +1,7 @@
 #include "server/utils/AuthenticateUsers.hpp"
 #include "server/utils/JsonParser.hpp"
 #include "server/utils/Encrypt.hpp"
+#include "server/utils/EncryptionKeys.hpp"
 #include <algorithm>
 #include <crow.h>
 #include <fstream>
@@ -87,8 +88,17 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
         json oneSnip = ReadFile(seedDataFile);
 
         bool found = false;
-        for (const auto& code : oneSnip) {
+        for (auto& code : oneSnip) {
         if (codeID == code.at("id")) {
+            // Decryption
+            std::string encoded_code = code.at("code");
+            CROW_LOG_INFO << "Original code: " << encoded_code;
+            std::string encrypted_data = base64_decode(encoded_code);
+            CROW_LOG_INFO << "Base64 decode: " << encrypted_data;
+
+            std::string decrypted_code = decrypt(encrypted_data, encryption_key, encryption_iv);
+            CROW_LOG_INFO <<"Decrypted code" << decrypted_code;
+            code.update({{"code", decrypted_code}});
         res.set_header("Content-Type", "application/json");
         res.code = 200;
         res.write(code.dump(4));
@@ -101,7 +111,6 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
     res.code = 404;
     res.write("No Content Found");
     }   
-            
         res.end(); });
 
     // POST method
@@ -109,13 +118,14 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
         .methods("POST"_method)([](const crow::request &req, crow::response &res)
                                 {
         json request = request.parse(req.body);
-        // int id = request["id"];
         std::string language = request["language"];
         std::string code = request["code"];
 
-        Env env = readKeys(keyDataFile);
-        setEnv(env);
-        std::string encrypted_code = encrypt(code, std::getenv("ENCRYPTION_KEY"), std::getenv("ENCRYPTION_IV"));
+        const std::string encryption_key;
+        const std::string encryption_iv;
+
+        // Encrypt code (handles binary input and output)
+        std::string encrypt_code = encrypt(code);
 
         json postData = ReadFile(seedDataFile);
         // Find the highest existing ID
@@ -129,8 +139,9 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
         json newSnippet = {
             {"id", newId},
             {"language", language},
-            {"code", encrypted_code}
+            {"code", encrypt_code}
         };
+        CROW_LOG_INFO << encrypt_code;
         postData.push_back(newSnippet);
 
         std::ofstream outputFile(seedDataFile);
