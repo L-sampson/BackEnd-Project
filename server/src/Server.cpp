@@ -192,7 +192,7 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
             json userData = {
                 {"id", new_userID},
                 {"username", username},
-                {"hashedPassword", hashedPassword}
+                {"password", hashedPassword}
             };
             postUser.push_back(userData);
 
@@ -232,6 +232,40 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
             res.write("Couldn't find Users");
         }
         });
+
+    // Login Users.
+    CROW_ROUTE(app, "/user/login")
+    .methods("POST"_method)([](const crow::request& req, crow::response& res){
+        // Parse the body of request
+        json request = request.parse(req.body);
+        std::string username = request["username"];
+        std::string password = request["password"];
+
+        // Read the users and Authenticate
+        json userLogin = ReadFile(userDataFile);
+        CROW_LOG_INFO << username;
+            try {
+                for(auto& users: userLogin) {
+                    if (username == users["username"]) {
+                    CROW_LOG_INFO << "User found";
+                    std::string salt = GenerateSalt();
+                    std::string userInput = HashPassword(password, salt);
+                    bool loggedIn = comparePassword(password, userInput);
+                    CROW_LOG_INFO << loggedIn;
+                    res.write(
+                        R"(
+                        | |     / /  ___    / /  _____  ____    ____ ___   ___
+                        | | /| / /  / _ \  / /  / ___/ / __ \  / __ `__ \ / _ \
+                        | |/ |/ /  /  __/ / /  / /__  / /_/ / / / / / / //  __/
+                        |__/|__/   \___/ /_/   \___/  \____/ /_/ /_/ /_/ \___/ )");
+                    }
+                }
+            } catch(std::exception& e) {
+                CROW_LOG_INFO << "Error: " << e.what();
+                res.code = 404;
+            }
+            res.end();
+    });
 
     app.port(8080)
         .multithreaded()

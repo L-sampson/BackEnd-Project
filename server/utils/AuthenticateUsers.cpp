@@ -3,14 +3,17 @@
 #include <openssl/sha.h>
 #include <nlohmann/json.hpp>
 
-
 using namespace nlohmann;
 
 std::string GenerateSalt() {
-    const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789./";
     std::string salt;
+    // seeds rand with 33. AscII chars are 33-126.
+    srand(33);
     for (int i = 0; i < 16; ++i) {
-        salt += characters[rand() % characters.length()];
+        // generate random number from seed to 126
+        int aciiValue = rand() % 126;
+        char character = static_cast<char>(aciiValue);
+        salt += character;
     }
     return salt;
 }
@@ -33,6 +36,14 @@ std::string HashPassword(const std::string& password, const std::string& salt) {
     std::string hashedPassword = hexStream.str();
     hashedPassword += "$" + salt;
     return hashedPassword;
+}
+
+// Compare entered password and hashedPassword
+bool comparePassword (std::string& password, std::string& hashedPassword){
+    int saltPos = hashedPassword.find("$");
+    std::string saltInput = hashedPassword.substr(saltPos + 1);
+    std::string userPass = HashPassword(password, saltInput);
+    return userPass == hashedPassword;
 }
 
 

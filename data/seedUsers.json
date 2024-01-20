@@ -1,17 +1,17 @@
 [
     {
-        "hashedPassword": "1b22500d5cce2a840d25621094c616b3bd5d1293b3f9276174b325a7e99fedac$NgPZr/kSPn6RY7Jg",
         "id": 1,
-        "username": "Sampson"
+        "password": "37f55cbd2f44176934019778dca201402597783f82e9723d850c5728bb9ab560$\u0013\u000f*Oa0-Qth.bdW2Q",
+        "username": "TreyP"
     },
     {
-        "hashedPassword": "654091a1ec04ca2fcb7a97a2402a4223ffe09ec633b7e0e623cefbca22ced2c3$8cu4BONn2AUJZFjA",
         "id": 2,
-        "username": "Trey"
+        "password": "37f55cbd2f44176934019778dca201402597783f82e9723d850c5728bb9ab560$\u0013\u000f*Oa0-Qth.bdW2Q",
+        "username": "TreyS"
     },
     {
-        "hashedPassword": "cfe5102084cc407c7392b50c1a3c2575da7d672f8d27449ef4de05eeaace8c12$MYn3XyJALDfxyPEu",
         "id": 3,
-        "username": "Spider"
+        "password": "37f55cbd2f44176934019778dca201402597783f82e9723d850c5728bb9ab560$\u0013\u000f*Oa0-Qth.bdW2Q",
+        "username": "Sam"
     }
 ]
