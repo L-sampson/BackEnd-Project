@@ -5,7 +5,10 @@ cc_library(
     srcs = ["AuthenticateUsers.cpp"],
     hdrs = ["AuthenticateUsers.hpp"],
     copts = ["-I/usr/include/openssl",
-    "-std=c++17"],
+    "-I/usr/include/jwt-cpp",
+    "-I/usr/include/picojson",
+    "-std=c++20"],
+    deps = ["//server/utils:keys"],
     visibility = ["//visibility:public"],
 )
 

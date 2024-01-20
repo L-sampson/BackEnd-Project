@@ -2,16 +2,19 @@
     {
         "id": 1,
         "password": "37f55cbd2f44176934019778dca201402597783f82e9723d850c5728bb9ab560$\u0013\u000f*Oa0-Qth.bdW2Q",
-        "username": "TreyP"
+        "username": "TreyP",
+        "role" : "user"
     },
     {
         "id": 2,
         "password": "37f55cbd2f44176934019778dca201402597783f82e9723d850c5728bb9ab560$\u0013\u000f*Oa0-Qth.bdW2Q",
-        "username": "TreyS"
+        "username": "TreyS",
+        "role" : "user"
     },
     {
         "id": 3,
         "password": "37f55cbd2f44176934019778dca201402597783f82e9723d850c5728bb9ab560$\u0013\u000f*Oa0-Qth.bdW2Q",
-        "username": "Sam"
+        "username": "Sam",
+        "role" : "admin"
     }
 ]
