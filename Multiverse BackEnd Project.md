@@ -32,23 +32,38 @@ project/
     |
     |-- server/
     |   |-- src/
-    |   |   |-- main.cpp             // Main function for the server-side application
     |   |   |-- Server.cpp           // Server implementation using Crow
-    |   |   |-- Server.h             // Header file for the Server class
-    |   |   |-- JSONParser.cpp       // JSON parsing logic for server-side
+    |   |-- utils/
+    |   |   |-- AuthenticateUser.cpp // Creates Users, hashes password and Authenticate their login.
+    |   |   |-- Encrypt.cpp          // Encrypt & Decrypt data sent using HTTP requests
+    |   |   |-- EncryptionKey.cpp    // Provides env keys for encryption/decryption
+    |   |   |-- JSONParser.cpp       // JSON parsing logic for server-side, reading files.
     |   |   |-- JSONParser.h         // Header file for the JSONParser class used by the server
     |   |-- tests/                   // Server-side unit tests (if applicable)
     |       |-- test_routes.cpp      // Unit test file for server-side route handling (if applicable)
     |
     |-- data/
-    |   |-- seed.json                // Seed data file
-    |
+    |   |-- seedData.json                // Seed data file for code snipepts
+    |   |-- seedUsers.json               // Seed data file for users
+
     |-- README.md                    // Project documentation
     |-- Bazel/CMake BuildFile        // Build automation script
 ```
 
-## Week 2 MVP
+## Week 3 MVP: ***Find a safe way of allowing secured access without providing their password every time***
+
 ### User Stories
+- As a user, I want to authenticate once with email and password, so that I can access my snippets without writing my password every time
+### Functional Requirements Week 3
+- The user provides their email and password to authenticate and receives a token in exchange
+- The token allows the user to authorize further requests to the API without repeating their password
+- Users can access secured resources with their token just as they could using their password in the previous epic
+- The token expires after 24 hours
+- Email and password should be passed in the Authorization header of the request
+- Use JWTs to provide authorization
+
+## Week 2 MVP
+### User Stories Week 2
 #### Encryption
 - As a user, I want all snippets to be encrypted before being saved into the database, so that I feel confident my code can’t be stolen if the database is compromised
 - As a user, I want the snippet to be decrypted before it is returned from the API, so that I can actually read it
@@ -56,7 +71,7 @@ project/
 ### Authentication
 - As a user, I want to make an account with my email and password, so that I can have an identity on Snippr.io
 
-### Functional Requirements
+### Functional Requirements Week 2
 #### Encryption MVP
 - When a POST request is made to /snippet, the code content of the body should be encrypted before saving in the datastore
 - When a GET request is made to /snippet (or any subroute), the code content should be decrypted before returning

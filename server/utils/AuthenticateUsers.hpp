@@ -16,6 +16,7 @@ struct User {
 
 std::string GenerateSalt();
 std::string HashPassword(const std::string& password, const std::string& saltHex);
+bool comparePassword (std::string& password, std::string& hashedPassword);
 User NewUser();
 
 
