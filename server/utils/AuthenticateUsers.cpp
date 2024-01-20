@@ -46,7 +46,6 @@ bool comparePassword (std::string& password, std::string& hashedPassword){
     return userPass == hashedPassword;
 }
 
-
 User NewUser() {
     // Creates new User object.
     User newUser;
@@ -78,5 +77,36 @@ void WriteUserToFile(const User& user, const std::string& filename) {
         std::cout << "User data written to file: " << filename <<std::endl;
     } else {
         std::cerr <<"Failed to write user data to file: " <<filename <<std::endl;
+    }
+}
+
+// JWT Token Claims
+picojson::value create_role_claim(const std::string& role) {
+    picojson::object claim;
+    claim["role"] = picojson::value(role);
+    return picojson::value(claim);
+}
+
+std::string generate_jwt_with_role(const std::string& role) {
+    picojson::value role_claim = create_role_claim(role);
+
+    auto claims = jwt::create()
+        .set_issuer("http://sniper.io")
+        .set_subject("admin@sniper.io")
+        .set_issued_at(std::chrono::system_clock::now())
+        .set_expires_at(std::chrono::system_clock::now() + std::chrono::hours(24))
+        .set_payload_claim("role", role_claim);
+
+    return claims.sign(jwt::algorithm::hs256{token})
+                 .c_str();
+}
+
+bool validate_JWT(const std::string& token) {
+    try {
+        jwt::decoded_jwt<jwt::traits::kazuho_picojson> decoded = jwt::decode(token);
+        const jwt::header<jwt::traits::kazuho_picojson> &header = decoded.get_header();
+        const jwt::claim<jwt::traits::kazuho_picojson>& payload = decoded.get_payload();
+    } catch(const std::exception& e) {
+        return false;
     }
 }

@@ -9,8 +9,8 @@
                 "/usr/include/botan-2"
             ],
             "defines": [],
-            "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c17",
+            "compilerPath": "/usr/bin/g++-12",
+            "cStandard": "c23",
             "intelliSenseMode": "linux-gcc-x64"
         }
     ],

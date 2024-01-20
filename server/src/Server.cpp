@@ -252,12 +252,24 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
                     std::string userInput = HashPassword(password, salt);
                     bool loggedIn = comparePassword(password, userInput);
                     CROW_LOG_INFO << loggedIn;
-                    res.write(
+                    if (loggedIn) {
+                        std::string role = users["role"];
+                        std::string authToken = generate_jwt_with_role(role);
+                        CROW_LOG_INFO << authToken;
+                        res.set_header("Authorization", "Bearer "  + token);
+                        res.write(
                         R"(
                         | |     / /  ___    / /  _____  ____    ____ ___   ___
                         | | /| / /  / _ \  / /  / ___/ / __ \  / __ `__ \ / _ \
                         | |/ |/ /  /  __/ / /  / /__  / /_/ / / / / / / //  __/
                         |__/|__/   \___/ /_/   \___/  \____/ /_/ /_/ /_/ \___/ )");
+                    }
+                    else {
+                        CROW_LOG_INFO << "Failed to login";
+                        CROW_LOG_INFO << "Failed to generate token";
+                    }
+                    } else {
+                        CROW_LOG_INFO << "Failed to find user";
                     }
                 }
             } catch(std::exception& e) {
