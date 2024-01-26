@@ -12,18 +12,12 @@
 #include <sstream>
 #include <string>
 
-struct User {
-    int id;
-    std::string username;
-    std::string hashedPassword;
-};
-
 std::string GenerateSalt();
 std::string HashPassword(const std::string& password, const std::string& saltHex);
 bool comparePassword (std::string& password, std::string& hashedPassword);
 picojson::value create_role_claim(const std::string& role);
 std::string generate_jwt_with_role(const std::string& role);
-User NewUser();
-
+std::string get_token(const std::string& authHeader);
+bool verifyToken(const std::string& token, const std::string& secret_key);
 
 #endif

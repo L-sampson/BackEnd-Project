@@ -24,8 +24,7 @@ std::string ivFile = "/home/lavonsampson/c++/BackEnd-Project/config/iv.txt";
 std::string tokenFile = "/home/lavonsampson/c++/BackEnd-Project/config/secret.key";
 extern const std::string encryption_key = getKeys(keyFile);
 extern const std::string encryption_iv = getKeys(ivFile);
-extern const std::string token = getKeys(tokenFile);
-
+extern const std::string secret_key = getKeys(tokenFile);
 
 
      
