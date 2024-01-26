@@ -2,19 +2,25 @@
     {
         "id": 1,
         "password": "37f55cbd2f44176934019778dca201402597783f82e9723d850c5728bb9ab560$\u0013\u000f*Oa0-Qth.bdW2Q",
-        "username": "TreyP",
-        "role" : "user"
+        "role": "user",
+        "username": "TreyP"
     },
     {
         "id": 2,
         "password": "37f55cbd2f44176934019778dca201402597783f82e9723d850c5728bb9ab560$\u0013\u000f*Oa0-Qth.bdW2Q",
-        "username": "TreyS",
-        "role" : "user"
+        "role": "user",
+        "username": "TreyS"
     },
     {
         "id": 3,
         "password": "37f55cbd2f44176934019778dca201402597783f82e9723d850c5728bb9ab560$\u0013\u000f*Oa0-Qth.bdW2Q",
-        "username": "Sam",
-        "role" : "admin"
+        "role": "admin",
+        "username": "Sam"
+    },
+    {
+        "id": 4,
+        "password": "ba60bcdc22f77bfc3ed3783bdafb87ab711a8be2dcc8519e8fcabcd6cb05dc31$\u0013\u000f*Oa0-Qth.bdW2Q",
+        "username": "SamT",
+        "role": "admin"
     }
 ]

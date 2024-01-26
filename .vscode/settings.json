@@ -74,6 +74,7 @@
         "variant": "cpp",
         "numbers": "cpp",
         "semaphore": "cpp",
-        "span": "cpp"
+        "span": "cpp",
+        "*.ipp": "cpp"
     }
 }

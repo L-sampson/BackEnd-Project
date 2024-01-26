@@ -5,7 +5,7 @@
 std::string getKeys(const std::string& filename);
 extern const std::string encryption_key;
 extern const std::string encryption_iv;
-extern const std::string token;
+extern const std::string secret_key;
 
 
 #endif

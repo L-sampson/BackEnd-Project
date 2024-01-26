@@ -12,16 +12,73 @@
 #include <string>
 #include <vector>
 
-
 using namespace nlohmann;
 std::string seedDataFile = "/home/lavonsampson/c++/BackEnd-Project/data/seedData.json";
 std::string userDataFile = "/home/lavonsampson/c++/BackEnd-Project/data/seedUsers.json";
 std::string keyDataFile = "/home/lavonsampson/c++/BackEnd-Project/config/keys.json";
+
+//Global Middleware
+struct RequestLogger
+{
+    struct context
+    {};
+
+    void before_handle(crow::request& req, crow::response& /*res*/, context& /*ctx*/)
+    {
+        CROW_LOG_INFO << "Request to:" + req.url;
+    }
+
+    void after_handle(crow::request& /*req*/, crow::response& /*res*/, context& /*ctx*/)
+    {}
+};
+
+// Authenticate middleware to read authHeader
+struct AuthenticateMiddleWare : crow::ILocalMiddleware {
+    struct context{};
+
+    void before_handle(crow::request& req, crow::response& res, context& ctx) {
+        std::string authHeader = req.get_header_value("Authorization");
+        if (authHeader.empty()) {
+            res.code = 401;
+            res.write("Unauthorized");
+            res.end();
+            return;
+        } else {
+            // Extract the token
+            std::string token = get_token(authHeader);
+            if(token.empty()) {
+                CROW_LOG_INFO << "Invalid token format";
+                res.code = 401;
+                res.write("Unauthorized");
+                res.end();
+                return;
+            }
+
+            // Verify the token
+            if (!verifyToken(token, secret_key)) {
+                CROW_LOG_INFO << "Invalid token";
+                res.code = 401;
+                res.write("Unauthorized");
+                res.end();
+                return;
+            }
+
+            CROW_LOG_INFO << "Token verified";
+        }
+        CROW_LOG_INFO << "AuthHeader size: " << authHeader.size();
+    }
+    void after_handle(crow::request& req, crow::response& res, context& /*ctx*/) {
+        res.set_header("Cache-Control", "no-store, no-cache, must-revalidate");
+    }
+};
+
 int main(int argc, char* argv[])
 {
+    // Command Arugments.
     std::vector<std::string> commands(argv + 1, argv + argc);
-    // Main page.
-    crow::SimpleApp app;
+
+    // Establishing Middleware
+    crow::App<RequestLogger, AuthenticateMiddleWare> app;
 
     // Landing Page for Snippet with string literal for welcome message.
     CROW_ROUTE(app, "/")
@@ -84,7 +141,10 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
 
     // Get by ID
     CROW_ROUTE(app, "/snippet/<int>")
-        .methods("GET"_method)([](const crow::request &req, crow::response &res, int codeID) {
+        .CROW_MIDDLEWARES(app, AuthenticateMiddleWare)
+        .methods("GET"_method)
+        ([](const crow::request &req, crow::response &res, int codeID)
+         {
         json oneSnip = ReadFile(seedDataFile);
 
         bool found = false;
@@ -166,9 +226,9 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
         // Parse request body
         try {
             json request = request.parse(req.body);
-            // int id = request["id"];
             std::string username = request["username"];
             std::string password = request["password"];
+            std::string role = request["role"];
 
             // Generate salt and hash password
             std::string salt = GenerateSalt();
@@ -192,7 +252,8 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
             json userData = {
                 {"id", new_userID},
                 {"username", username},
-                {"password", hashedPassword}
+                {"password", hashedPassword},
+                {"role", role}
             };
             postUser.push_back(userData);
 
@@ -256,7 +317,7 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
                         std::string role = users["role"];
                         std::string authToken = generate_jwt_with_role(role);
                         CROW_LOG_INFO << authToken;
-                        res.set_header("Authorization", "Bearer "  + token);
+                        res.set_header("Authorization", "Bearer "  + authToken);
                         res.write(
                         R"(
                         | |     / /  ___    / /  _____  ____    ____ ___   ___
@@ -278,6 +339,21 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
             }
             res.end();
     });
+
+    CROW_ROUTE(app, "/protected")
+    .CROW_MIDDLEWARES(app, AuthenticateMiddleWare)
+    .methods("GET"_method)
+    .middlewares<AuthenticateMiddleWare>()
+    ([](const crow::request& req, crow::response& res) {
+    std::string authHeader = req.get_header_value("Authorization");
+    std::string token = get_token(authHeader);
+    CROW_LOG_INFO << authHeader;
+    CROW_LOG_INFO << token;
+    bool veri = verifyToken(token, secret_key);
+    CROW_LOG_INFO << veri;
+            res.code = 500;
+            res.write("Autho");
+            res.end();    });
 
     app.port(8080)
         .multithreaded()

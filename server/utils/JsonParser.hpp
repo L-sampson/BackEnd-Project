@@ -6,6 +6,5 @@
 
 using namespace nlohmann;
 json ReadFile(const std::string& file_path);
-void WriteUserToFile(const User& user, const std::string& filename);
 
 #endif // SERVER_UTILS_JSON_PARSER_HPP_ 

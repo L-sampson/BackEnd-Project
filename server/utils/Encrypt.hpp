@@ -21,8 +21,5 @@ std::string base64_encode(const unsigned char* data, int data_len);
 std::string encrypt(const std::string& plaintext);
 std::string base64_decode(const std::string& encoded_data);
 std::string decrypt(const std::string& cipher64, const std::string& key, const std::string& iv);
-// Env readKeys(std::string& keyFile);
-
-
 
 #endif // SERVER_UTILS_ENCRYPT_HPP_
