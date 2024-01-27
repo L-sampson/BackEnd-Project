@@ -280,6 +280,7 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
 
     // Get All Users.
     CROW_ROUTE(app, "/users")
+    .CROW_MIDDLEWARES(app, AuthenticateMiddleWare)
         .methods("GET"_method)([&commands](const crow::request &req, crow::response &res){
         if (std::find(commands.begin(), commands.end(), "users") != commands.end()) {
             json jsonData = ReadFile(userDataFile);
@@ -304,16 +305,17 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
 
         // Read the users and Authenticate
         json userLogin = ReadFile(userDataFile);
-        CROW_LOG_INFO << username;
+        bool userFound = false;
             try {
                 for(auto& users: userLogin) {
                     if (username == users["username"]) {
                     CROW_LOG_INFO << "User found";
                     std::string salt = GenerateSalt();
+                    // Fix comparing passwords.
                     std::string userInput = HashPassword(password, salt);
                     bool loggedIn = comparePassword(password, userInput);
-                    CROW_LOG_INFO << loggedIn;
                     if (loggedIn) {
+                        CROW_LOG_INFO << "Users logged in: " << username;
                         std::string role = users["role"];
                         std::string authToken = generate_jwt_with_role(role);
                         CROW_LOG_INFO << authToken;
@@ -326,12 +328,15 @@ $$/      $$/  $$$$$$$/ $$/  $$$$$$$/  $$$$$$/  $$/  $$/  $$/  $$$$$$$/          
                         |__/|__/   \___/ /_/   \___/  \____/ /_/ /_/ /_/ \___/ )");
                     }
                     else {
-                        CROW_LOG_INFO << "Failed to login";
+                        CROW_LOG_INFO << "Failed to login user: " << username;
+                        CROW_LOG_INFO << "Incorrect Password";
                         CROW_LOG_INFO << "Failed to generate token";
                     }
-                    } else {
-                        CROW_LOG_INFO << "Failed to find user";
+                    userFound = true;
                     }
+                }
+                if(!userFound){
+                    CROW_LOG_INFO << "Failed to find user: " << username;
                 }
             } catch(std::exception& e) {
                 CROW_LOG_INFO << "Error: " << e.what();
